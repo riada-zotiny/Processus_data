@@ -1,6 +1,5 @@
 # DVC and Data Files
 /data/raw
-/data/
 
 # DVC cache (depends on your dvc config, but often included)
 !.dvc/
