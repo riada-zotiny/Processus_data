@@ -1,0 +1,16 @@
+# DVC and Data Files
+/data/raw
+/data/
+
+# DVC cache (depends on your dvc config, but often included)
+!.dvc/
+!*.dvc
+.dvcignore
+
+# Environment Files
+.pdvenv/
+venv/
+ENV/
+env/
+.venv/
+*.DS_Store
