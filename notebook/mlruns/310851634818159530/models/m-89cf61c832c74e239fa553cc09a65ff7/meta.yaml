@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/akram/Processus_data/notebook/mlruns/310851634818159530/models/m-89cf61c832c74e239fa553cc09a65ff7/artifacts
+creation_timestamp: 1763915711211
+experiment_id: '310851634818159530'
+last_updated_timestamp: 1763915717814
+model_id: m-89cf61c832c74e239fa553cc09a65ff7
+model_type: null
+name: model
+source_run_id: 8a47655ae1da46daa16e4a3cc476ed9f
+status: 2
+status_message: null

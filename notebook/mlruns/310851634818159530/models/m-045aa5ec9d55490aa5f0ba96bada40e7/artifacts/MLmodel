@@ -1,0 +1,43 @@
+artifact_path: file:///C:/Users/akram/Processus_data/notebook/mlruns/310851634818159530/models/m-045aa5ec9d55490aa5f0ba96bada40e7/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+is_signature_from_type_hint: false
+mlflow_version: 3.6.0
+model_id: m-045aa5ec9d55490aa5f0ba96bada40e7
+model_size_bytes: 3436
+model_uuid: m-045aa5ec9d55490aa5f0ba96bada40e7
+prompts: null
+run_id: 8909920764c54cf4bfc9b6f8fe0de48b
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "long", "name": "ID", "required": true}, {"type": "long", "name":
+    "Age", "required": true}, {"type": "long", "name": "Gender", "required": true},
+    {"type": "long", "name": "Country", "required": true}, {"type": "double", "name":
+    "Coffee_Intake", "required": true}, {"type": "double", "name": "Caffeine_mg",
+    "required": true}, {"type": "double", "name": "Sleep_Hours", "required": true},
+    {"type": "long", "name": "Sleep_Quality", "required": true}, {"type": "double",
+    "name": "BMI", "required": true}, {"type": "long", "name": "Heart_Rate", "required":
+    true}, {"type": "double", "name": "Physical_Activity_Hours", "required": true},
+    {"type": "long", "name": "Health_Issues", "required": true}, {"type": "long",
+    "name": "Occupation", "required": true}, {"type": "long", "name": "Smoking", "required":
+    true}, {"type": "long", "name": "Alcohol_Consumption", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-11-23 16:41:35.244258'

@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/akram/Processus_data/notebook/mlruns/310851634818159530/8909920764c54cf4bfc9b6f8fe0de48b/artifacts
+end_time: 1763916100381
+entry_point_name: ''
+experiment_id: '310851634818159530'
+lifecycle_stage: active
+run_id: 8909920764c54cf4bfc9b6f8fe0de48b
+run_name: LogisticRegression
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763916093463
+status: 3
+tags: []
+user_id: akram

@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/akram/Processus_data/notebook/mlruns/310851634818159530/5dbcabf001284b3785b826bb24ba791e/artifacts
+end_time: 1763916093445
+entry_point_name: ''
+experiment_id: '310851634818159530'
+lifecycle_stage: active
+run_id: 5dbcabf001284b3785b826bb24ba791e
+run_name: RandomForest
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763916077980
+status: 3
+tags: []
+user_id: akram
