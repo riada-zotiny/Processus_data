@@ -23,3 +23,6 @@ def main():
     #
     print('use load_data() function to load the data ' \
     '\nsynthetic_coffee_health_10000.csv will be automatically loaded if no path is specified')
+
+
+
