@@ -1,18 +1,17 @@
 # Data Files
-/data
+/data/*
 !/data/*.py
-!/data/raw/*.dvc
-!/data/processed/*.dvc
+!/data/*.dvc
 
 # DVC cache (depends on your dvc config, but often included)
-.dvc
+.dvc/*
 !.dvc/config
 !.dvc/.gitignore
-.dvcignore
+
 
 # Environment Files
 .pdvenv/
-
+.pdenv
 venv/
 ENV/
 env/
@@ -22,4 +21,4 @@ env/
 /models
 !/models/*.py
 
-/mlruns
+/mlruns/
