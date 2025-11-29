@@ -10,6 +10,7 @@
 
 # Environment Files
 .pdvenv/
+.pdenv
 venv/
 ENV/
 env/
@@ -19,4 +20,4 @@ env/
 /models
 !/models/*.py
 
-/mlruns
+/mlruns/
