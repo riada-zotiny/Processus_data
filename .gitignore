@@ -17,10 +17,11 @@ env/
 .venv/
 *.DS_Store
 
-/models
+/models/*
 !/models/*.py
 
 /mlruns/
 
 /.ipynb_checkpoints
 /notebooks/.ipynb_checkpoints
+/mlruns
