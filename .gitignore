@@ -21,3 +21,6 @@ env/
 !/models/*.py
 
 /mlruns/
+
+/.ipynb_checkpoints
+/notebooks/.ipynb_checkpoints
