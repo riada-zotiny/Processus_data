@@ -71,9 +71,8 @@ def preprocess_data(df):
     df['Continent'] = df['Country'].map(continent_map).fillna('Other')
 
 
-    df.drop(columns=['ID', 'Country'], inplace=True)
+    df.drop(columns=['ID', 'Country', 'Age'], inplace=True)
     df.head()
-
 
 
 
@@ -84,7 +83,9 @@ def preprocess_data(df):
     sleep_quality_map = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
     stress_level_map = {'Low': 0, 'Medium': 1, 'High': 2}
     health_issues_map = {'None': 0, 'Mild': 1, 'Moderate': 2, 'Severe': 3}
+    age_goups = {'0-18':0, '19-30':1, '31-45':2, '46-60':3, '60+':4}
 
+    df['Age_Group'] = df['Age_Group'].map(age_goups)
     df['Sleep_Quality'] = df['Sleep_Quality'].map(sleep_quality_map)
     df['Stress_Level'] = df['Stress_Level'].map(stress_level_map)
     df['Health_Issues'] = df['Health_Issues'].map(health_issues_map)
