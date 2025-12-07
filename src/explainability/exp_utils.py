@@ -1,6 +1,4 @@
 import numpy as np
-import torch
-import torch.nn.functional as F
 
 import shap
 from lime import lime_tabular
@@ -19,16 +17,13 @@ def calculate_probas(model, X):
         probabilities : probabilité de l'appartenance de chaque échantillon au classes étudiée (numpy array)
 
     """
-    model.eval()
-    X_tensor = torch.FloatTensor(X)
+    # predict_proba retourne un array numpy de probabilités pour chaque classe
+    probabilities = model.predict_proba(X)
+    
+    # Détermination de la classe prédite (indice de la proba max)
+    predictions = probabilities.argmax(axis=1)
 
-    with torch.no_grad():
-        logits = model(X_tensor)
-        probabilities = F.softmax(logits, dim=1) 
-        # Détermination de la classe prédite (indice de la proba max)
-        predictions = torch.argmax(probabilities, dim=1)
-
-    return predictions.cpu().numpy(), probabilities.cpu().numpy()
+    return predictions, probabilities
 
 def create_shap_explainer(predict_fn, data):
     """
