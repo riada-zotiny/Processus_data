@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import shap
 from lime import lime_tabular
@@ -52,58 +54,6 @@ def calculate_shap_values(explainer, X):
     return explainer(X)
 
 
-def create_lime_explainer(data, feature_names, mode='regression'):
-    """
-    Create a LIME TabularExplainer.
-
-    Args:
-        data: données
-        feature_names: nom des variables explicatives
-        mode: 'regression' or 'classification'
-
-    Returns:
-        explainer: objet LIME TabularExplainer
-
-    """
-    return lime_tabular.LimeTabularExplainer(
-        training_data=data,
-        feature_names=feature_names,
-        mode=mode,
-        verbose=False
-    )
-
-def explain_instance_lime(explainer, instance, predict_fn, num_features=14, num_samples=500):
-    """
-    Generate LIME explanation for a single instance.
-
-    Args:
-        explainer: LIME explainer object
-        instance: Single sample to explain (1D numpy array)
-        predict_fn: Function that takes X and returns predictions
-        num_features: Number of features to explain
-        num_samples: Number of perturbation samples
-
-    Returns:
-        explanation: LIME explanation object
-        feature_weights: Dictionary of {feature_name: weight}
-    """
-
-    explanation = explainer.explain_instance(
-        data_row=instance,
-        predict_fn=predict_fn,
-        num_features=num_features,
-        num_samples=num_samples
-    )
-    feature_weights = dict(explanation.as_list())
-    return explanation, feature_weights
-
-
-def str_in_key(chaine, dic):
-    keys = []
-    for key in dic.keys():
-        if chaine+" " in key:
-            keys.append(key)
-    return keys
 
 def compare_shap_lime(shap_values, lime_weights, feature_names):
     """
@@ -130,3 +80,61 @@ def compare_shap_lime(shap_values, lime_weights, feature_names):
         else:
             disagreeing_features.append(feature)
     return agreement_rate/len(feature_names), disagreeing_features
+
+
+
+
+# LIME TASK 
+def LimeTabularExplainer(X_train, y_train):
+    explainer = lime_tabular.LimeTabularExplainer(
+        training_data=X_train.values,
+        feature_names=X_train.columns,
+        class_names=sorted(y_train.unique()),   # affichage propre
+        mode='classification'
+    )
+
+
+# Explain instance for _single_raw
+def explain_instance_for_single_raw(explainer , sample , best_model):
+    exp = explainer.explain_instance(
+        data_row=sample,
+        predict_fn=best_model.predict_proba
+    )
+
+def separe_classes(y_test):
+    grouped_indices = y_test.groupby(y_test).indices
+    return grouped_indices
+
+
+def explain_instance_for_each_classe(grouped_indices , X_test , y_test, explainer , best_model):
+    all_results = []
+    for i in range(min(50, len(grouped_indices))):
+        ligne = grouped_indices[0][i]
+        sample = X_test.iloc[ligne]
+        exp = explainer.explain_instance(sample.values, best_model.predict_proba)
+    
+        for feature, weight in exp.as_list():
+            all_results.append({
+                "index": ligne,
+                "feature": feature,
+                "weight": weight,
+                "true_class": y_test.iloc[ligne]
+            })
+
+
+    df_lime = pd.DataFrame(all_results)
+    return df_lime
+
+
+def visualisation_lime(df_lime , classe):
+    top_features = df_lime.groupby('feature')['weight'].mean().sort_values(ascending=False).head(10)
+    top_features.plot(kind='barh', figsize=(8,5))
+    plt.xlabel("Contribution moyenne LIME")
+    plt.title("Top 10 features influençant la classe {classe}")
+    plt.show()
+
+
+
+
+
+
