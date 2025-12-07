@@ -1,7 +1,7 @@
 import json
+import os
 
-file_uri = "../data/experiments/exps.json"
-
+file_uri = "..//data//experiments//exps.json"
 
 def load_runs():
     try:
