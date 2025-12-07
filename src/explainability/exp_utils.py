@@ -89,29 +89,35 @@ def LimeTabularExplainer(X_train, y_train):
     explainer = lime_tabular.LimeTabularExplainer(
         training_data=X_train.values,
         feature_names=X_train.columns,
-        class_names=sorted(y_train.unique()),   # affichage propre
+        class_names= [0 , 1 , 2  ,3],   # affichage propre
         mode='classification'
     )
+    return explainer
 
 
 # Explain instance for _single_raw
-def explain_instance_for_single_raw(explainer , sample , best_model):
+def explain_instance_for_single_raw(explainer , sample , predict_fn):
     exp = explainer.explain_instance(
         data_row=sample,
-        predict_fn=best_model.predict_proba
+        predict_fn=predict_fn
     )
+    return exp
 
 def separe_classes(y_test):
-    grouped_indices = y_test.groupby(y_test).indices
+    # On sélectionne la première colonne (ou utilise le nom de la colonne si tu le connais)
+    y_series = y_test.iloc[:, 0]
+    
+    # y_series est maintenant une Series 1D, ce qui fonctionne avec groupby
+    grouped_indices = y_series.groupby(y_series).indices
     return grouped_indices
 
 
-def explain_instance_for_each_classe(grouped_indices , X_test , y_test, explainer , best_model):
+def explain_instance_for_each_classe(grouped_indices , X_test , y_test, explainer , predict_fn):
     all_results = []
     for i in range(min(50, len(grouped_indices))):
-        ligne = grouped_indices[0][i]
+        ligne = grouped_indices[i]
         sample = X_test.iloc[ligne]
-        exp = explainer.explain_instance(sample.values, best_model.predict_proba)
+        exp = explainer.explain_instance(sample, predict_fn)
     
         for feature, weight in exp.as_list():
             all_results.append({
@@ -126,11 +132,12 @@ def explain_instance_for_each_classe(grouped_indices , X_test , y_test, explaine
     return df_lime
 
 
+
 def visualisation_lime(df_lime , classe):
     top_features = df_lime.groupby('feature')['weight'].mean().sort_values(ascending=False).head(10)
     top_features.plot(kind='barh', figsize=(8,5))
     plt.xlabel("Contribution moyenne LIME")
-    plt.title("Top 10 features influençant la classe {classe}")
+    plt.title(f"Top 10 features influençant la classe {classe}")
     plt.show()
 
 
