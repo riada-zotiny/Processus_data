@@ -85,7 +85,7 @@ def compare_shap_lime(shap_values, lime_weights, feature_names):
 
 
 # LIME TASK 
-def LimeTabularExplainer(X_train, y_train):
+def LimeTabularExplainer(X_train):
     explainer = lime_tabular.LimeTabularExplainer(
         training_data=X_train.values,
         feature_names=X_train.columns,
