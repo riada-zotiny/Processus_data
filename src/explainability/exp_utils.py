@@ -36,10 +36,10 @@ def create_shap_explainer(predict_fn, data):
         explainer: objet SHAP KernelExplainer
 
     """
-    return shap.KernelExplainer(predict_fn, data[:100])
+    return shap.Explainer(predict_fn, data[:100])
 
 
-def calculate_shap_values(explainer, X, nsamples=50):
+def calculate_shap_values(explainer, X):
     """
     Args:
         explainer: SHAP explainer object
@@ -49,7 +49,7 @@ def calculate_shap_values(explainer, X, nsamples=50):
     Returns:
         shap_values: valeurs SHAP
     """
-    return explainer.shap_values(X, nsamples = nsamples)
+    return explainer(X)
 
 
 def create_lime_explainer(data, feature_names, mode='regression'):
