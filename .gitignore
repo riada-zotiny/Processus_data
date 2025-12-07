@@ -26,4 +26,4 @@ env/
 /notebooks/.ipynb_checkpoints
 /mlruns
 
-src/utils/__pycache__
+src/*/__pycache__

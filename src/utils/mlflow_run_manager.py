@@ -7,7 +7,7 @@ def load_runs():
     try:
         with open(file_uri, 'r', encoding='utf-8') as f:
             data = json.load(f)
-    except FileNotFoundError:
+    except:
         data = {}
     
     return data
