@@ -114,7 +114,7 @@ def separe_classes(y_test):
 
 def explain_instance_for_each_classe(grouped_indices , X_test , y_test, explainer , predict_fn):
     all_results = []
-    for i in range(min(50, len(grouped_indices))):
+    for i in range(max(len(grouped_indices), 10)):
         ligne = grouped_indices[i]
         sample = X_test.iloc[ligne]
         exp = explainer.explain_instance(sample, predict_fn)

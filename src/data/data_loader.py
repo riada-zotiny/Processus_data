@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-def load_data(data_dir = "C://Users//akram//Processus_data//data//raw//synthetic_coffee_health_10000.csv"):
+def load_data(data_dir = "../data/raw/synthetic_coffee_health_10000.csv"):
 #
 #   Loads csv data
 #
