@@ -5,6 +5,13 @@
 Il faut d'abord importer le code et les métadonnées dvc du git en utilisant la commande `git clone https://github.com/riada-zotiny/Processus_data`
 Ceci copiera le projet dans le repertoire dans lequel vous vous trouvez lors de l'execution de la commande.
 
+## Instalation des dépendances
+
+Il faut ensuite créer un environnement python virtuel dans lequel on installera les différentes librairies utilisées pour cela dans la racine de votre projet executer les commandes suivantes :
+1. `python -m venv .venv`
+2. `./.venv/Scripts/activate` utilisez `\` à la place de `/` si vous êtes sur Windows
+3. `pip install -r requirements.txt`
+
 ## Récupération des données
 
 Pour cette partie il faudera se connecter au cloud avant de pouvoir récuperer les données.
