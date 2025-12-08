@@ -281,7 +281,7 @@ def batch_prediction_page(model, df_sample):
             st.error(f"Erreur lors des prédictions par lot : {e}")
 
 def main():
-    st.title("Machine Learning Prediction App — Dataset monitored")
+    st.title("Global Coffee Health Prediction App — Dataset monitored")
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Single Prediction", "Batch Prediction", "Dataset"])
 
