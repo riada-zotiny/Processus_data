@@ -5,12 +5,23 @@ import pandas as pd
 import numpy as np
 from io import BytesIO
 import glob, os, joblib, pickle
+from src.data.preprocessing  import preprocess_data
 
 DATA_SAMPLE_PATH = "data/raw/synthetic_coffee_health_10000.csv"
 TARGET_COLUMN = "Sleep_Quality"
+MODEL_PATH = "../mlruns/619235882260501448/models/m-2f93ce56213f4209ad48ba5c91a98c07/artifacts"
 
 def load_model_auto():
+    # 1) try the exact path specified by the user
     tried = []
+    try:
+        model = mlflow.sklearn.load_model(MODEL_PATH)
+        st.write(f"Model loaded (mlflow) from explicit path: {MODEL_PATH}")
+        return model
+    except Exception as e:
+        tried.append(MODEL_PATH)
+
+    # 2) fallback to previous discovery logic
     candidates = glob.glob("**/model.pkl", recursive=True)
     candidates += glob.glob("../mlruns/**/*.pkl", recursive=True)
     mlflow_dirs = glob.glob("../mlruns/*/*/artifacts/*") + glob.glob("../mlruns/*/models/*")
@@ -48,6 +59,7 @@ def load_model_auto():
 
     raise FileNotFoundError(f"No model found. Tried: {tried}")
 
+
 def load_sample_dataset():
     if os.path.exists(DATA_SAMPLE_PATH):
         return pd.read_csv(DATA_SAMPLE_PATH)
@@ -57,78 +69,210 @@ def load_sample_dataset():
         return pd.read_csv(alt)
     return None
 
+
+# ...existing code...
 def build_input_widgets_from_df(df, exclude=[TARGET_COLUMN]):
-    features = [c for c in df.columns if c not in exclude]
+    """
+    Build widgets and pre-fill them with values taken from a random row of `df`
+    (if available). If df is empty or a column is missing, fall back to previous defaults.
+    Returns (features, values) where `values` contains the widget-returned values.
+    """
+    features = [c for c in df.columns if c not in exclude] if isinstance(df, pd.DataFrame) else []
     values = {}
+
+    # try to pick a random row from the dataset to use as default values
+    random_row = None
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        try:
+            random_row = df.sample(n=1).iloc[0]
+        except Exception:
+            random_row = None
+
     for c in features:
-        col = df[c]
+        # safe column access (handle case where df may be empty DataFrame passed)
+        col = df[c] if (isinstance(df, pd.DataFrame) and c in df.columns) else pd.Series(dtype="float")
         if pd.api.types.is_numeric_dtype(col):
-            default = float(col.mean()) if not np.isnan(col.mean()) else 0.0
+            # prefer the random row value if available and numeric
+            if random_row is not None and pd.notna(random_row.get(c)):
+                try:
+                    default = float(random_row[c])
+                except Exception:
+                    default = float(col.mean()) if (not col.empty and not np.isnan(col.mean())) else 0.0
+            else:
+                default = float(col.mean()) if (not col.empty and not np.isnan(col.mean())) else 0.0
             values[c] = st.number_input(c, value=default)
         else:
             uniques = col.dropna().unique().tolist()
             if len(uniques) > 50:
-                # too many categories -> free text
-                values[c] = st.text_input(c, value=str(uniques[0]) if uniques else "")
+                # too many categories -> free text, prefill from random row if present
+                if random_row is not None and pd.notna(random_row.get(c)):
+                    default_text = str(random_row[c])
+                else:
+                    default_text = str(uniques[0]) if uniques else ""
+                values[c] = st.text_input(c, value=default_text)
             else:
-                values[c] = st.selectbox(c, options=uniques)
+                options = uniques if uniques else [""]
+                # choose index so the selectbox shows the random row value if present
+                if random_row is not None and pd.notna(random_row.get(c)) and random_row[c] in options:
+                    default_index = options.index(random_row[c])
+                else:
+                    default_index = 0
+                values[c] = st.selectbox(c, options=options, index=default_index)
     return features, values
+
+
+# mapping for Sleep_Quality (same as in preprocessing)
+sleep_quality_map = {'Poor': 0, 'Fair': 1, 'Good': 2, 'Excellent': 3}
+# inverse map for displaying labels from numeric predictions
+sleep_quality_inv = {v: k for k, v in sleep_quality_map.items()}
+
+# helper to get readable class label from model class identifier
+def readable_label(cls):
+    # if class is numeric (encoded), map to readable label
+    try:
+        if isinstance(cls, (int, np.integer, float, np.floating)):
+            return sleep_quality_inv.get(int(cls), str(cls))
+    except Exception:
+        pass
+    # if class is string and matches an original label, return it
+    if isinstance(cls, str) and cls in sleep_quality_map:
+        return cls
+    return str(cls)
 
 def single_prediction_page(model, df_sample):
     st.header("Single Prediction")
     st.write("Formulaire généré automatiquement à partir du dataset analysé.")
     features, values = build_input_widgets_from_df(df_sample)
     if st.button("Predict"):
-        # build row in same order as `features`
-        row = []
-        for f in features:
-            v = values[f]
-            # try convert categorical strings to numeric when possible
-            try:
-                row.append(float(v))
-            except Exception:
-                row.append(v)
-        X = np.array(row).reshape(1, -1)
+        # build a single-row dict from widget values
+        row_dict = {f: values[f] for f in features}
+
         try:
-            pred = model.predict(X)
-            st.success(f"Prediction: {pred[0]}")
+            # Combine row with sample dataset so preprocess_data fits encoders consistently.
+            if isinstance(df_sample, pd.DataFrame) and not df_sample.empty:
+                combined = pd.concat([df_sample.reset_index(drop=True), pd.DataFrame([row_dict])], ignore_index=True)
+            else:
+                combined = pd.DataFrame([row_dict])
+
+            # preprocess the combined dataframe (this will map/encode columns as in src/data/preprocessing.py)
+            processed = preprocess_data(combined)
+
+            # Drop Sleep_Hours if present (as requested)
+            if "Sleep_Hours" in processed.columns:
+                processed = processed.drop(columns=["Sleep_Hours"])
+
+            # Take the last row (the user's input after preprocessing) and predict
+            X = processed.tail(1)
+            X_vals = X.values  # model expects numeric array
+
+            pred = model.predict(X_vals)
+            pred_val = pred[0]
+
+            # map numeric prediction to readable label when possible
+            pred_label = readable_label(pred_val)
+            st.success(f"Prediction (encoded): {pred_val}  —  Prediction (label): {pred_label}")
+
+            # show probabilities with readable class names if available
             if hasattr(model, "predict_proba"):
-                st.write("Probabilities:")
-                st.write(model.predict_proba(X))
+                proba = model.predict_proba(X_vals)[0]
+                # model.classes_ gives the class ordering used by predict_proba
+                if hasattr(model, "classes_"):
+                    class_names = [readable_label(c) for c in model.classes_]
+                else:
+                    # fallback to ordered keys from sleep_quality_map
+                    class_names = [readable_label(i) for i in range(len(proba))]
+                proba_df = pd.DataFrame([proba], columns=class_names)
+                st.write("Probabilities (per class):")
+                st.dataframe(proba_df.T.rename(columns={0: "probability"}))
         except Exception as e:
             st.error(f"Erreur lors de la prédiction : {e}")
 
+# ...existing code...
 def batch_prediction_page(model, df_sample):
     st.header("Batch Prediction")
-    st.info("Vous pouvez uploader un CSV pré-traité compatible avec le modèle ou utiliser un échantillon du dataset analysé.")
+    st.info("Vous pouvez uploader un CSV (raw) ou utiliser un échantillon du dataset analysé (raw).")
     use_sample = st.checkbox("Utiliser échantillon dataset analysé", value=False)
     uploaded_file = st.file_uploader("Choisir un fichier CSV", type="csv")
     df = None
-    if use_sample:
+    if use_sample and isinstance(df_sample, pd.DataFrame):
         df = df_sample.copy()
-        st.write("Aperçu de l'échantillon :")
-        st.dataframe(df.head())
     elif uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.write("Aperçu du fichier uploadé :")
-        st.dataframe(df.head())
+        try:
+            df = pd.read_csv(uploaded_file)
+        except Exception as e:
+            st.error(f"Impossible de lire le CSV uploadé: {e}")
+            return
     else:
-        st.write("Aucun fichier sélectionné.")
+        st.warning("Aucun dataset sélectionné pour la prédiction par lot.")
+        return
+
+    # Drop 'Sleep_Quality' column immediately after loading raw data (before display / preprocessing)
+    if isinstance(df, pd.DataFrame) and "Sleep_Quality" in df.columns:
+        df = df.drop(columns=["Sleep_Quality"])
+
+    st.write("Aperçu des données (raw):")
+    st.dataframe(df.head())
+
+    # paramètres de sortie
+    output_filename = st.text_input("Nom du fichier de sortie (CSV)", value="predictions.csv")
+    save_on_server = st.checkbox("Enregistrer le fichier de sortie sur le serveur", value=False)
 
     if df is not None and st.button("Run Predictions"):
         try:
-            preds = model.predict(df.drop(columns=[TARGET_COLUMN]) if TARGET_COLUMN in df.columns else df)
-            df["Prediction"] = preds
+            # Prétraitement (utilise votre src.data.preprocessing.preprocess_data)
+            processed = preprocess_data(df.copy())
+
+            # Drop Sleep_Hours si présent
+            if "Sleep_Hours" in processed.columns:
+                processed = processed.drop(columns=["Sleep_Hours"])
+
+            # conversion en numpy pour la prédiction
+            X_vals = processed.values
+            preds = model.predict(X_vals)
+
+            # Add encoded prediction and readable label
+            out = df.copy()
+            out["prediction"] = preds
+            try:
+                out["prediction_label"] = [readable_label(p) for p in preds]
+            except Exception:
+                out["prediction_label"] = out["prediction"].astype(str)
+
+            # If probabilities available, attach them with readable class columns
             if hasattr(model, "predict_proba"):
-                proba = model.predict_proba(df.drop(columns=["Prediction"]) if "Prediction" in df.columns else df)
-                for i in range(proba.shape[1]):
-                    df[f"Prob_Class_{i}"] = proba[:, i]
+                probs = model.predict_proba(X_vals)
+                if hasattr(model, "classes_"):
+                    class_cols = [readable_label(c) for c in model.classes_]
+                else:
+                    class_cols = [readable_label(i) for i in range(probs.shape[1])]
+                probs_df = pd.DataFrame(probs, columns=[f"prob_{c}" for c in class_cols], index=out.index)
+                out = pd.concat([out, probs_df], axis=1)
+
             st.success("Prédictions terminées")
-            st.dataframe(df.head(20))
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button("Télécharger résultats CSV", data=csv, file_name="predictions.csv", mime="text/csv")
+            st.dataframe(out.head(50))
+
+            # préparation du CSV pour téléchargement
+            csv_bytes = out.to_csv(index=False).encode("utf-8")
+
+            st.download_button(
+                label="Télécharger les prédictions (CSV)",
+                data=csv_bytes,
+                file_name=output_filename,
+                mime="text/csv"
+            )
+
+            # optionnel : sauvegarder sur le serveur (chemin relatif au serveur)
+            if save_on_server:
+                try:
+                    save_path = os.path.abspath(output_filename)
+                    with open(save_path, "wb") as f:
+                        f.write(csv_bytes)
+                    st.info(f"Fichier enregistré sur le serveur : {save_path}")
+                except Exception as e:
+                    st.error(f"Échec de l'enregistrement sur le serveur : {e}")
+
         except Exception as e:
-            st.error(f"Erreur durant la prédiction batch : {e}")
+            st.error(f"Erreur lors des prédictions par lot : {e}")
 
 def main():
     st.title("Machine Learning Prediction App — Dataset monitored")
