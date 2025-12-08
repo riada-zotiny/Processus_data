@@ -143,7 +143,7 @@ Il est crucial d'exécuter les cellules dans l'ordre pour que les expériences M
 
 ```python
 {'rf': 0.80436..., 'svm': 0.80436..., 'mlp': 0.80772...}
-
+```
 
 ## 4. Interprétation et Suivi avec MLflow
 
