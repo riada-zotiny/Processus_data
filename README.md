@@ -28,7 +28,7 @@ Cela vous demandera des identifiants que vous devrait demander en envoyant un ma
 Enfin il suffit juste de récupérer les données en tappant la commande `dvc pull` à la racine du projet.
 
 
-# 📔 Guide d'utilisation d'un Notebook Jupyter
+#  Guide d'utilisation d'un Notebook Jupyter
 
 Ce notebook est conçu pour vous montrer comment interagir efficacement avec un autre notebook (ici, `01_exploration.ipynb`) et tirer parti de l'environnement Jupyter.
 
@@ -40,14 +40,14 @@ L'objectif de ce notebook est de présenter les étapes pour ouvrir, lire, exéc
 
 Un notebook est composé de cellules de deux types principaux : **Markdown** (texte formaté) et **Code**.
 
-### 📝 Cellules Markdown
+### Cellules Markdown
 
 Ces cellules contiennent des explications, des titres, des descriptions, comme le README que vous avez vu précédemment.
 
 - **Action** : Double-cliquez sur n'importe quelle cellule de texte (comme celle-ci) pour voir le code Markdown brut.  
 - **But** : Comprendre les objectifs du projet, la description des données (GlobalCoffeeHealth dataset), les noms des auteurs, et les conclusions écrites.
 
-### 🐍 Cellules Code
+### Cellules Code
 
 Ces cellules contiennent du code (généralement Python) qui effectue les traitements, les calculs, et les visualisations.
 
@@ -55,7 +55,7 @@ Ces cellules contiennent du code (généralement Python) qui effectue les traite
 
 L'exécution des cellules est essentielle pour reproduire les analyses.
 
-### ⚙️ Exécution Séquentielle
+### Exécution Séquentielle
 
 1. Assurez-vous que l'environnement Python est prêt (le noyau/kernel est connecté).  
 2. Exécutez la première cellule de code qui importe les bibliothèques (`pandas`, `matplotlib`, etc.) et charge les données (par exemple, un fichier `coffee_data.csv`).  
@@ -63,7 +63,7 @@ L'exécution des cellules est essentielle pour reproduire les analyses.
 - **Action** : Cliquez sur la cellule de code et appuyez sur **Maj + Entrée** (ou utilisez le bouton "Exécuter" ▶️ dans la barre d'outils).  
 - **Observation** : Un numéro (In [1], In [2], etc.) apparaîtra à gauche de la cellule pour indiquer qu'elle a été exécutée.
 
-### 🔄 Exécution du Notebook Entier
+### Exécution du Notebook Entier
 
 Pour exécuter tout le travail sans interruption :
 
@@ -156,7 +156,7 @@ Il est crucial d'exécuter les cellules dans l'ordre pour que les expériences M
 
 Le cœur de ce notebook est la **traçabilité des expériences**.
 
-### 📈 Rôle de MLflow
+### Rôle de MLflow
 
 MLflow permet de stocker pour chaque modèle entraîné :
 
@@ -164,7 +164,7 @@ MLflow permet de stocker pour chaque modèle entraîné :
 - **Métriques** : Performances (Score F1 pondéré, Précision, Rappel).  
 - **Artefacts** : Le modèle lui-même et d'autres fichiers (ex. graphiques).
 
-### 🎯 Conclusion du Notebook
+### Conclusion du Notebook
 
 Comme indiqué dans la dernière cellule de `02_experiments.ipynb`, l'analyse a conduit à la sélection du **SVM avec un noyau linéaire** comme modèle optimal, obtenant un **score de 99.26%**.
 
@@ -233,14 +233,29 @@ L'exécution doit être **séquentielle**, car chaque étape dépend de la préc
   - La couleur (du bleu au rouge) montre si une valeur élevée de cette variable a un impact **positif ou négatif** sur la prédiction (ex. impact positif sur une bonne qualité de sommeil).
 
 
+#  Guide d'utilisation du Notebook `streamlit_app.ipynb`
+## Guide rapide : utilisation de l'application Streamlit
+
+### Lancement
+- Activer l'environnement et lancer l'app :
+  ```
+  .venv\Scripts\activate
+  streamlit run streamlit_app.py
+  ```
+
+### Pages principales
+
+- Single Prediction : widgets auto-générés depuis un exemple aléatoire du dataset. L'entrée est prétraitée avec `src/data/preprocessing.py` avant prédiction.
 
 
+- Batch Prediction : upload d'un CSV ou utilisation d'un échantillon. Après chargement, la colonne `Sleep_Quality` est supprimée pour l'affichage et les colonnes manquantes (ID, Country, Age, Health_Issues, Sleep_Quality) sont ajoutées si nécessaire avant le prétraitement.
 
+### Sortie & téléchargement
+- Après batch, le tableau de sortie contient : `prediction` (encodée), `prediction_label` (lisible) et colonnes `prob_*` si `predict_proba` est disponible. Bouton pour télécharger CSV.
 
-
-
-
-
+### Remarques
+- Le mapping des labels lisibles utilise : `{'Poor':0,'Fair':1,'Good':2,'Excellent':3}`.
+- Pour la production, envisager de sauvegarder le préprocesseur (joblib) afin d'éviter de refiter les encodeurs à chaque requête.
 
 
 

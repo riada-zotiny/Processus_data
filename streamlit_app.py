@@ -207,8 +207,14 @@ def batch_prediction_page(model, df_sample):
         return
 
     # Drop 'Sleep_Quality' column immediately after loading raw data (before display / preprocessing)
+        # Drop 'Sleep_Quality' column immediately after loading raw data (before display / preprocessing)
     if isinstance(df, pd.DataFrame) and "Sleep_Quality" in df.columns:
         df = df.drop(columns=["Sleep_Quality"])
+
+    # Ensure required raw columns exist so preprocess_data won't raise KeyError
+    for _col in ["ID", "Country", "Age", "Health_Issues", "Sleep_Quality"]:
+        if _col not in df.columns:
+            df[_col] = np.nan
 
     st.write("Aperçu des données (raw):")
     st.dataframe(df.head())
@@ -275,7 +281,7 @@ def batch_prediction_page(model, df_sample):
             st.error(f"Erreur lors des prédictions par lot : {e}")
 
 def main():
-    st.title("Machine Learning Prediction App — Dataset monitored")
+    st.title("Global Coffee Health Prediction App — Dataset monitored")
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Go to", ["Single Prediction", "Batch Prediction", "Dataset"])
 
